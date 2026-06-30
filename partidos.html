@@ -1,0 +1,848 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Partidos</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel ="icon" type ="image/png" href="Imagenes/Logo Principal.png">
+    <!-- EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-btn-top {
+            background: none;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 5px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 0.8rem;
+        }
+        .admin-bar-partidos {
+            display: none;
+            align-items: center;
+            gap: 0.8rem;
+            margin: 0.8rem 0 1.2rem;
+            padding: 0.8rem 1rem;
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        .admin-bar-partidos.show { display: flex; }
+        .admin-card-controls {
+            display: none;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .admin-card-controls.show { display: flex; }
+        .btn-admin-mini {
+            border: none;
+            border-radius: 6px;
+            padding: 4px 9px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-lock { background: #334155; color: #f8fafc; }
+        .btn-lock.locked { background: #7f1d1d; color: #fca5a5; }
+        .btn-resultado { background: var(--gold); color: #0f172a; }
+        .badge-puntos {
+            display: inline-block;
+            margin-top: 0.4rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-mas3 { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid #22c55e55; }
+        .badge-mas1 { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid #94a3b855; }
+        .badge-menos1 { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef444455; }
+        .predict-btn:disabled, .btn-cambiar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .cerrado-label {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+        #admin-modal-partidos {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+        }
+        #admin-modal-partidos.show { display: flex; }
+        .btn-predicho {
+            background: #1a3e8b;
+            color: #bbf7d0;
+            border: 1.5px solid #356ee9;
+            border-radius: 8px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: bold;
+            cursor: default;
+            white-space: nowrap;
+        }
+        .btn-cambiar {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.78rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-cambiar:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        .btns-prediccion {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .match-info .btns-prediccion {
+            margin-top: 0.4rem;
+        }
+        #sending-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        #sending-overlay.show { display: flex; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #334155;
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MXP</div>
+        <ul class="nav-links">
+            <li><a href="partidos.html">Partidos</a></li>
+            <li><a href="tabla.html">Tabla</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+            <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section id="matches">
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <h2 style="margin:0;">Dieciseisavos</h2>
+                <button id="admin-btn-partidos" class="admin-btn-top" onclick="pedirAdminPartidos()">Admin</button>
+            </div>
+            <div id="admin-bar-partidos" class="admin-bar-partidos">
+                <span style="color:var(--gold); font-weight:bold; font-size:0.9rem;">⚙ Admin activo</span>
+                <span style="color:#94a3b8; font-size:0.8rem;">Bloquea predicciones o ingresa el resultado de un partido</span>
+                <button id="lock-btn-partidos" class="btn-admin-mini btn-lock" onclick="salirAdminPartidos()">🔒 Salir</button>
+            </div>
+            <div class="matches-grid">
+
+                <div class="match-card" id="card-26">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 1.jpg); background-color:#000000;"></div>
+                        <span>Brasil</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Lun, 1:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-26" onclick="abrirModal('Brasil', 'Japon', 'card-26')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 7.jpg); background-color:#000000;"></div>
+                        <span>Japon</span>
+                    </div>
+                </div>
+        
+                <div class="match-card" id="card-27">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 2.jpg); background-color:#000000;"></div>
+                        <span>Alemania</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Lun, 4:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-27" onclick="abrirModal('Alemania', 'Paraguay', 'card-27')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 20.jpg); background-color:#000000;"></div>
+                        <span>Paraguay</span>
+                    </div>
+                </div>
+
+                <div class="match-card" id="card-28">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 17.jpg); background-color:#000000;"></div>
+                        <span>Holanda</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Lun, 4:30 p.m.</div>
+                        <button class="predict-btn" id="btn-card-28" onclick="abrirModal('Holanda', 'Marruecos', 'card-28')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 6.jpg); background-color:#000000;"></div>
+                        <span>Marruecos</span>
+                    </div>
+                </div>
+
+                <div class="match-card" id="card-29">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 16.jpg);background-color:#000000;"></div>
+                        <span>Francia</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Mar, 5:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-29" onclick="abrirModal('Francia', 'Suecia', 'card-29')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 8.jpg);background-color:#000000;"></div>
+                        <span>Suecia</span>
+                    </div>
+                </div>
+
+
+                <div class="match-card" id="card-30">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 5.jpg);background-color:#000000;"></div>
+                        <span>Inglaterra</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Mier, 12:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-30" onclick="abrirModal('Inglaterra', 'Congo', 'card-30')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 11.jpg);background-color:#000000;"></div>
+                        <span>Congo</span>
+                    </div>
+                </div>
+                
+                <div class="match-card" id="card-31">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 15.jpg);background-color:#000000;"></div>
+                        <span>Belgica</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Mier, 4:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-31" onclick="abrirModal('Belgica', 'Senegal', 'card-31')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 9.jpg);background-color:#000000;"></div>
+                        <span>Senegal</span>
+                    </div>
+                </div>
+
+                <div class="match-card" id="card-32">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 19.jpg);background-color:#000000;"></div>
+                        <span>España</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Jue, 3:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-32" onclick="abrirModal('España', 'Austria', 'card-32')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 10.jpg);background-color:#000000;"></div>
+                        <span>Austria</span>
+                    </div>
+                </div>
+  
+                <div class="match-card" id="card-33">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 4.jpg);background-color:#000000;"></div>
+                        <span>Portugal</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Jue, 7:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-33" onclick="abrirModal('Portugal', 'Croacia', 'card-33')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 13.jpg);background-color:#000000;"></div>
+                        <span>Croacia</span>
+                    </div>
+                </div>
+
+                <div class="match-card" id="card-34">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 3.jpg);background-color:#000000;"></div>
+                        <span>Argentina</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Vie, 6:00 p.m.</div>
+                        <button class="predict-btn" id="btn-card-34" onclick="abrirModal('Argentina', 'Cabo Verde', 'card-34')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 18.jpg);background-color:#000000;"></div>
+                        <span>Cabo Verde</span>
+                    </div>
+                </div>
+
+                <div class="match-card" id="card-35">
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 12.jpg);background-color:#000000;"></div>
+                        <span>Colombia</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <div class="match-time">Vie, 9:30 p.m.</div>
+                        <button class="predict-btn" id="btn-card-35" onclick="abrirModal('Colombia', 'Ghana', 'card-35')">Predecir</button>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="background-image:url(Imagenes/images\ 14.jpg);background-color:#000000;"></div>
+                        <span>Ghana</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal de predicción -->
+    <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#1e293b; border-radius:16px; padding:2rem; width:90%; max-width:400px; border:1px solid #334155;">
+            <h3 id="modal-titulo" style="margin-bottom:1.5rem; text-align:center; color:#f8fafc;"></h3>
+            <p style="color:#94a3b8; text-align:center; margin-bottom:1rem; font-size:0.9rem;">Ingresa tu predicción de marcador</p>
+            <div id="prediccion-anterior" style="display:none; text-align:center; margin-bottom:1rem; padding:0.6rem; background:rgba(34,197,94,0.1); border:1px solid #22c55e33; border-radius:8px;">
+                <span style="color:#94a3b8; font-size:0.8rem;">Tu predicción anterior: </span>
+                <span id="texto-anterior" style="color:#356ee9; font-weight:bold; font-size:0.85rem;"></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem; justify-content:center; margin-bottom:1.5rem;">
+                <div style="text-align:center;">
+                    <div id="nombre-local" style="color:#f8fafc; font-size:0.85rem; margin-bottom:0.5rem;"></div>
+                    <input type="number" id="goles-local" min="0" max="20" value="0"
+                        style="width:70px; padding:0.8rem; font-size:1.5rem; text-align:center; background:#0f172a; color:#f8fafc; border:2px solid #334155; border-radius:8px;">
+                </div>
+                <div style="color:#356ee9; font-size:1.5rem; font-weight:bold;">-</div>
+                <div style="text-align:center;">
+                    <div id="nombre-visitante" style="color:#f8fafc; font-size:0.85rem; margin-bottom:0.5rem;"></div>
+                    <input type="number" id="goles-visitante" min="0" max="20" value="0"
+                        style="width:70px; padding:0.8rem; font-size:1.5rem; text-align:center; background:#0f172a; color:#f8fafc; border:2px solid #334155; border-radius:8px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <button onclick="cerrarModal()" style="flex:1; padding:0.8rem; background:#334155; color:#f8fafc; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Cancelar</button>
+                <button onclick="confirmarPrediccion()" class="predict-btn" style="flex:1; padding:0.8rem;" id="btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal contraseña admin -->
+    <div id="admin-modal-partidos">
+        <div style="background:#1e293b; border:1px solid #334155; border-radius:14px; padding:2rem; width:90%; max-width:360px; text-align:center;">
+            <h3 style="margin-bottom:1rem; color:var(--gold);">🔑 Acceso Admin</h3>
+            <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:1rem;">Ingresa la contraseña de administrador</p>
+            <input type="password" id="admin-pass-partidos" placeholder="Contraseña admin"
+                style="width:100%; padding:0.7rem; background:#0f172a; color:#f8fafc; border:2px solid #334155; border-radius:8px; font-size:1rem; margin-bottom:1rem; text-align:center;"
+                onkeydown="if(event.key==='Enter')verificarAdminPartidos()">
+            <p id="admin-error-partidos" style="display:none; color:#ef4444; font-size:0.8rem; margin-bottom:0.5rem;">Contraseña incorrecta.</p>
+            <div style="display:flex; gap:1rem;">
+                <button onclick="cerrarModalAdminPartidos()" style="flex:1; padding:0.7rem; background:#334155; color:#f8fafc; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Cancelar</button>
+                <button onclick="verificarAdminPartidos()" style="flex:1; padding:0.7rem; background:var(--gold); color:#0f172a; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal resultado de partido -->
+    <div id="modal-resultado" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1600; align-items:center; justify-content:center;">
+        <div style="background:#1e293b; border-radius:16px; padding:2rem; width:90%; max-width:400px; border:1px solid #334155;">
+            <h3 id="resultado-titulo" style="margin-bottom:1.5rem; text-align:center; color:#f8fafc;"></h3>
+            <p style="color:#94a3b8; text-align:center; margin-bottom:1rem; font-size:0.9rem;">Ingresa el resultado final</p>
+            <div style="display:flex; align-items:center; gap:1rem; justify-content:center; margin-bottom:1.5rem;">
+                <div style="text-align:center;">
+                    <div id="resultado-nombre-local" style="color:#f8fafc; font-size:0.85rem; margin-bottom:0.5rem;"></div>
+                    <input type="number" id="resultado-goles-local" min="0" max="20" value="0"
+                        style="width:70px; padding:0.8rem; font-size:1.5rem; text-align:center; background:#0f172a; color:#f8fafc; border:2px solid #334155; border-radius:8px;">
+                </div>
+                <div style="color:#356ee9; font-size:1.5rem; font-weight:bold;">-</div>
+                <div style="text-align:center;">
+                    <div id="resultado-nombre-visitante" style="color:#f8fafc; font-size:0.85rem; margin-bottom:0.5rem;"></div>
+                    <input type="number" id="resultado-goles-visitante" min="0" max="20" value="0"
+                        style="width:70px; padding:0.8rem; font-size:1.5rem; text-align:center; background:#0f172a; color:#f8fafc; border:2px solid #334155; border-radius:8px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <button onclick="cerrarModalResultado()" style="flex:1; padding:0.8rem; background:#334155; color:#f8fafc; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Cancelar</button>
+                <button onclick="confirmarResultado()" style="flex:1; padding:0.8rem; background:var(--gold); color:#0f172a; border:none; border-radius:8px; cursor:pointer; font-weight:bold;" id="btn-confirmar-resultado">Guardar resultado</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" style="display:none; position:fixed; bottom:2rem; right:2rem; background:#356ee9; color:#0f172a; padding:1rem 1.5rem; border-radius:10px; font-weight:bold; z-index:2000;">
+        ✔ Predicción enviada
+    </div>
+
+    <!-- Overlay de envío -->
+    <div id="sending-overlay">
+        <div class="spinner"></div>
+        <span style="color:#f8fafc; font-weight:bold;">Enviando predicción...</span>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURACIÓN EMAILJS
+        // Reemplaza estos 3 valores con los tuyos de emailjs.com
+        // ============================================================
+        const EMAILJS_PUBLIC_KEY  = 'Zy0vbACtGpt2ogDGl';
+        const EMAILJS_SERVICE_ID  = 'service_ocgqkub';
+        const EMAILJS_TEMPLATE_ID = 'template_azifs4l';
+
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+
+        // ============================================================
+        // CONFIGURACIÓN SUPABASE (misma que tabla.html / perfil.html)
+        // ============================================================
+        const SUPABASE_URL = 'https://xjvfasmlkoaldmcfpmzz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqdmZhc21sa29hbGRtY2ZwbXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NjIwMDEsImV4cCI6MjA5NTUzODAwMX0.oHaopTE0FxDXNvWKnt0aOvExDpYJw4LpNlZSpdBRmSc';
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const ADMIN_PASSWORD_PARTIDOS = 'slpt2020#';
+        let modoAdminPartidos = false;
+        let estadoPartidos = {}; // card_id -> { bloqueado, resuelto, resultado_local, resultado_visitante }
+
+        // ============================================================
+
+        const usuarioActivo = localStorage.getItem('fw_usuario_activo');
+        if (!usuarioActivo) window.location.href = 'index.html';
+
+        // Cargar predicciones guardadas al iniciar
+        const STORAGE_KEY = 'fw_predicciones_' + usuarioActivo;
+        let prediccionesGuardadas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+        let cardActual = null;
+        let localActual = '';
+        let visitanteActual = '';
+        let esCambio = false;
+
+        // Restaurar estado visual de botones al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            Object.keys(prediccionesGuardadas).forEach(cardId => {
+                const pred = prediccionesGuardadas[cardId];
+                marcarPrediccionEnBoton(cardId, pred.marcador);
+            });
+            cargarEstadoPartidos();
+            cargarMisResultados();
+        });
+
+        function abrirModal(local, visitante, cardId) {
+            if (estadoPartidos[cardId]?.bloqueado) {
+                mostrarToast('🔒 Las predicciones para este partido están cerradas.', true);
+                return;
+            }
+            cardActual = cardId;
+            localActual = local;
+            visitanteActual = visitante;
+
+            document.getElementById('modal-titulo').textContent = local + ' vs ' + visitante;
+            document.getElementById('nombre-local').textContent = local;
+            document.getElementById('nombre-visitante').textContent = visitante;
+
+            // Verificar si ya hay predicción previa
+            const predAnterior = prediccionesGuardadas[cardId];
+            const divAnterior = document.getElementById('prediccion-anterior');
+            const btnConfirmar = document.getElementById('btn-confirmar');
+
+            if (predAnterior) {
+                esCambio = true;
+                divAnterior.style.display = 'block';
+                document.getElementById('texto-anterior').textContent = predAnterior.marcador;
+                btnConfirmar.textContent = 'Actualizar';
+                // Pre-llenar con valores anteriores
+                const partes = predAnterior.marcador.split('-');
+                document.getElementById('goles-local').value = partes[0]?.trim() || 0;
+                document.getElementById('goles-visitante').value = partes[1]?.trim() || 0;
+            } else {
+                esCambio = false;
+                divAnterior.style.display = 'none';
+                btnConfirmar.textContent = 'Confirmar';
+                document.getElementById('goles-local').value = 0;
+                document.getElementById('goles-visitante').value = 0;
+            }
+
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        async function confirmarPrediccion() {
+            const golesLocal = document.getElementById('goles-local').value;
+            const golesVisitante = document.getElementById('goles-visitante').value;
+            const marcador = golesLocal + ' - ' + golesVisitante;
+            const ahora = new Date().toLocaleString('es-MX');
+
+            cerrarModal();
+            document.getElementById('sending-overlay').classList.add('show');
+
+            try {
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    nombre_usuario: usuarioActivo,
+                    partido: localActual + ' vs ' + visitanteActual,
+                    prediccion: localActual + ' ' + marcador + ' ' + visitanteActual,
+                    marcador: marcador,
+                    tipo: esCambio ? 'CAMBIO DE PREDICCIÓN' : 'NUEVA PREDICCIÓN',
+                    fecha: ahora
+                });
+
+                // Guardar predicción localmente
+                prediccionesGuardadas[cardActual] = {
+                    marcador: marcador,
+                    local: localActual,
+                    visitante: visitanteActual
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(prediccionesGuardadas));
+
+                // Guardar/actualizar predicción en Supabase (para que el admin pueda calificarla)
+                try {
+                    await db.from('predicciones').upsert({
+                        usuario: usuarioActivo,
+                        card_id: cardActual,
+                        local: localActual,
+                        visitante: visitanteActual,
+                        gl: parseInt(golesLocal),
+                        gv: parseInt(golesVisitante),
+                        marcador: marcador,
+                        puntos: null
+                    }, { onConflict: 'usuario,card_id' });
+                } catch (e) {
+                    console.error('Error guardando predicción en Supabase:', e);
+                }
+
+                // Actualizar botón visualmente
+                marcarPrediccionEnBoton(cardActual, marcador);
+
+                document.getElementById('sending-overlay').classList.remove('show');
+                mostrarToast(esCambio ? 'Predicción actualizada' : '✔ Predicción enviada');
+
+            } catch (error) {
+                console.error('Error EmailJS:', error);
+                document.getElementById('sending-overlay').classList.remove('show');
+                mostrarToast('❌ Error al enviar.', true);
+            }
+        }
+
+        function marcarPrediccionEnBoton(cardId, marcador) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const matchInfo = card.querySelector('.match-info');
+            const btnOriginal = document.getElementById('btn-' + cardId);
+            if (!btnOriginal) return;
+
+            // Reemplazar botón con estado "predicho + cambiar"
+            const pred = prediccionesGuardadas[cardId];
+            const textoPredicho = pred ? pred.local + ' ' + marcador + ' ' + pred.visitante : marcador;
+            const bloqueado = !!estadoPartidos[cardId]?.bloqueado;
+
+            btnOriginal.outerHTML = `
+                <div class="btns-prediccion" id="btn-area-${cardId}">
+                    <span class="btn-predicho" title="${textoPredicho}">${marcador}</span>
+                    <button class="btn-cambiar" ${bloqueado ? 'disabled' : ''} onclick="abrirModal('${pred?.local || localActual}', '${pred?.visitante || visitanteActual}', '${cardId}')">Cambiar</button>
+                </div>
+            `;
+        }
+
+        function mostrarToast(mensaje = ' Predicción enviada', esError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.style.background = esError ? '#ef4444' : '#22c55e';
+            toast.style.color = esError ? '#fff' : '#0f172a';
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('fw_usuario_activo');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // ESTADO DE PARTIDOS (bloqueo / resultado) — Supabase
+        // ============================================================
+        async function cargarEstadoPartidos() {
+            try {
+                const { data, error } = await db.from('partidos_estado').select('*');
+                if (error) throw error;
+                estadoPartidos = {};
+                (data || []).forEach(row => { estadoPartidos[row.card_id] = row; });
+                document.querySelectorAll('.match-card').forEach(card => aplicarBloqueoCard(card.id));
+            } catch (err) {
+                console.error('Error cargando estado de partidos:', err);
+            }
+        }
+
+        function aplicarBloqueoCard(cardId) {
+            const bloqueado = !!estadoPartidos[cardId]?.bloqueado;
+            const btnPredecir = document.getElementById('btn-' + cardId);
+            if (btnPredecir) {
+                btnPredecir.disabled = bloqueado;
+                btnPredecir.textContent = bloqueado ? '🔒 Cerrado' : 'Predecir';
+            }
+            const areaPred = document.getElementById('btn-area-' + cardId);
+            if (areaPred) {
+                const btnCambiar = areaPred.querySelector('.btn-cambiar');
+                if (btnCambiar) btnCambiar.disabled = bloqueado;
+            }
+            // Refrescar controles de admin si están visibles
+            const btnLock = document.getElementById('lock-card-' + cardId);
+            if (btnLock) {
+                btnLock.textContent = bloqueado ? '🔓 Desbloquear' : '🔒 Bloquear';
+                btnLock.classList.toggle('locked', bloqueado);
+            }
+        }
+
+        async function cargarMisResultados() {
+            try {
+                const { data, error } = await db
+                    .from('predicciones')
+                    .select('card_id, puntos')
+                    .eq('usuario', usuarioActivo)
+                    .not('puntos', 'is', null);
+                if (error) throw error;
+                (data || []).forEach(row => renderBadge(row.card_id, row.puntos));
+            } catch (err) {
+                console.error('Error cargando resultados del usuario:', err);
+            }
+        }
+
+        function renderBadge(cardId, puntos) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const matchInfo = card.querySelector('.match-info');
+            if (!matchInfo) return;
+
+            let clase = 'badge-menos1', texto = '−1';
+            if (puntos === 3) { clase = 'badge-mas3'; texto = '+3'; }
+            else if (puntos === 1) { clase = 'badge-mas1'; texto = '+1'; }
+
+            let badge = document.getElementById('badge-' + cardId);
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'badge-' + cardId;
+                matchInfo.appendChild(badge);
+            }
+            badge.className = 'badge-puntos ' + clase;
+            badge.textContent = texto;
+        }
+
+        // ============================================================
+        // MODO ADMIN (partidos.html)
+        // ============================================================
+        function pedirAdminPartidos() {
+            document.getElementById('admin-pass-partidos').value = '';
+            document.getElementById('admin-error-partidos').style.display = 'none';
+            document.getElementById('admin-modal-partidos').classList.add('show');
+            setTimeout(() => document.getElementById('admin-pass-partidos').focus(), 100);
+        }
+
+        function cerrarModalAdminPartidos() {
+            document.getElementById('admin-modal-partidos').classList.remove('show');
+        }
+
+        function verificarAdminPartidos() {
+            const pass = document.getElementById('admin-pass-partidos').value;
+            if (pass === ADMIN_PASSWORD_PARTIDOS) {
+                modoAdminPartidos = true;
+                cerrarModalAdminPartidos();
+                document.getElementById('admin-bar-partidos').classList.add('show');
+                document.getElementById('admin-btn-partidos').style.display = 'none';
+                renderControlesAdminTodasLasCards();
+            } else {
+                document.getElementById('admin-error-partidos').style.display = 'block';
+            }
+        }
+
+        function salirAdminPartidos() {
+            modoAdminPartidos = false;
+            document.getElementById('admin-bar-partidos').classList.remove('show');
+            document.getElementById('admin-btn-partidos').style.display = '';
+            document.querySelectorAll('.admin-card-controls').forEach(el => el.classList.remove('show'));
+        }
+
+        function obtenerEquiposDeCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return { local: '', visitante: '' };
+            const nombres = card.querySelectorAll('.team span');
+            return { local: nombres[0]?.textContent || '', visitante: nombres[1]?.textContent || '' };
+        }
+
+        function renderControlesAdminTodasLasCards() {
+            document.querySelectorAll('.match-card').forEach(card => {
+                const cardId = card.id;
+                const matchInfo = card.querySelector('.match-info');
+                if (!matchInfo) return;
+                let controles = document.getElementById('admin-controls-' + cardId);
+                if (!controles) {
+                    const { local, visitante } = obtenerEquiposDeCard(cardId);
+                    controles = document.createElement('div');
+                    controles.id = 'admin-controls-' + cardId;
+                    controles.className = 'admin-card-controls';
+                    controles.innerHTML = `
+                        <button id="lock-card-${cardId}" class="btn-admin-mini btn-lock" onclick="toggleBloqueoCard('${cardId}')">🔒 Bloquear</button>
+                        <button class="btn-admin-mini btn-resultado" onclick="abrirModalResultado('${cardId}', '${local}', '${visitante}')">📝 Resultado</button>
+                    `;
+                    matchInfo.appendChild(controles);
+                }
+                controles.classList.add('show');
+                aplicarBloqueoCard(cardId);
+            });
+        }
+
+        async function toggleBloqueoCard(cardId) {
+            const actual = !!estadoPartidos[cardId]?.bloqueado;
+            try {
+                const { error } = await db.from('partidos_estado').upsert({
+                    card_id: cardId,
+                    bloqueado: !actual
+                }, { onConflict: 'card_id' });
+                if (error) throw error;
+                estadoPartidos[cardId] = { ...(estadoPartidos[cardId] || {}), card_id: cardId, bloqueado: !actual };
+                aplicarBloqueoCard(cardId);
+            } catch (err) {
+                console.error('Error actualizando bloqueo:', err);
+                mostrarToast('❌ Error al actualizar el bloqueo.', true);
+            }
+        }
+
+        // ============================================================
+        // RESULTADO Y CÁLCULO DE PUNTOS
+        // ============================================================
+        let cardResultadoActual = null;
+
+        function abrirModalResultado(cardId, local, visitante) {
+            cardResultadoActual = cardId;
+            document.getElementById('resultado-titulo').textContent = local + ' vs ' + visitante;
+            document.getElementById('resultado-nombre-local').textContent = local;
+            document.getElementById('resultado-nombre-visitante').textContent = visitante;
+            const estado = estadoPartidos[cardId];
+            document.getElementById('resultado-goles-local').value = estado?.resultado_local ?? 0;
+            document.getElementById('resultado-goles-visitante').value = estado?.resultado_visitante ?? 0;
+            document.getElementById('modal-resultado').style.display = 'flex';
+        }
+
+        function cerrarModalResultado() {
+            document.getElementById('modal-resultado').style.display = 'none';
+        }
+
+        async function confirmarResultado() {
+            const cardId = cardResultadoActual;
+            const gl = parseInt(document.getElementById('resultado-goles-local').value);
+            const gv = parseInt(document.getElementById('resultado-goles-visitante').value);
+            if (isNaN(gl) || isNaN(gv)) { mostrarToast('❌ Ingresa un resultado válido.', true); return; }
+
+            const btn = document.getElementById('btn-confirmar-resultado');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                // 1. Traer todas las predicciones de este partido
+                const { data: predicciones, error: errPred } = await db
+                    .from('predicciones')
+                    .select('*')
+                    .eq('card_id', cardId);
+                if (errPred) throw errPred;
+
+                const realDir = gl > gv ? 1 : (gl < gv ? -1 : 0);
+
+                // 2. Calcular puntos por usuario y actualizar cada predicción
+                for (const pred of (predicciones || [])) {
+                    const predDir = pred.gl > pred.gv ? 1 : (pred.gl < pred.gv ? -1 : 0);
+                    let pts;
+                    if (pred.gl === gl && pred.gv === gv) pts = 3;
+                    else if (predDir === realDir) pts = 1;
+                    else pts = -1;
+
+                    const { error: errUpd } = await db
+                        .from('predicciones')
+                        .update({ puntos: pts })
+                        .eq('id', pred.id);
+                    if (errUpd) throw errUpd;
+
+                    // 3. Sumar puntos a la tabla de posiciones
+                    const { data: jugador, error: errSel } = await db
+                        .from('tabla')
+                        .select('puntos')
+                        .eq('usuario', pred.usuario)
+                        .maybeSingle();
+                    if (errSel) throw errSel;
+
+                    const puntosActuales = jugador?.puntos || 0;
+                    const { error: errTabla } = await db
+                        .from('tabla')
+                        .upsert({ usuario: pred.usuario, puntos: puntosActuales + pts }, { onConflict: 'usuario' });
+                    if (errTabla) throw errTabla;
+                }
+
+                // 4. Guardar resultado y bloquear el partido
+                const { error: errEstado } = await db.from('partidos_estado').upsert({
+                    card_id: cardId,
+                    bloqueado: true,
+                    resuelto: true,
+                    resultado_local: gl,
+                    resultado_visitante: gv
+                }, { onConflict: 'card_id' });
+                if (errEstado) throw errEstado;
+
+                estadoPartidos[cardId] = { card_id: cardId, bloqueado: true, resuelto: true, resultado_local: gl, resultado_visitante: gv };
+                aplicarBloqueoCard(cardId);
+                cerrarModalResultado();
+                mostrarToast('✔ Resultado guardado y puntos actualizados');
+                cargarMisResultados();
+
+            } catch (err) {
+                console.error('Error guardando resultado:', err);
+                mostrarToast('❌ Error al guardar el resultado.', true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar resultado';
+            }
+        }
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js");
+      }
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Iniciar Sesión</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel="icon" type="image/png" href="Imagenes/Logo Principal.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body class="login-body">
+
+    <div class="login-container">
+        <div class="logo" style="text-align: center; margin-bottom: 2rem;">MXP</div>
+        
+        <div id="loginForm" class="profile-card">
+            <h2 style="margin-bottom: 1.5rem; border: none; padding: 0; text-align: center;">Acceso de Usuario</h2>
+            
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" required>
+            </div>
+
+            <p id="error-msg" style="color: #ef4444; font-size: 0.8rem; margin-bottom: 1rem; display: none;">
+                Usuario o contraseña incorrectos.
+            </p>
+
+            <button onclick="iniciarSesion()" id="btn-login" class="predict-btn" style="width: 100%; padding: 1rem;">Iniciar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ============================================================
+        // CONFIGURACIÓN SUPABASE — reemplaza con tus datos reales
+        // Los encuentras en: supabase.com → tu proyecto → Settings → API
+        // ============================================================
+        const SUPABASE_URL = 'https://xjvfasmlkoaldmcfpmzz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqdmZhc21sa29hbGRtY2ZwbXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NjIwMDEsImV4cCI6MjA5NTUzODAwMX0.oHaopTE0FxDXNvWKnt0aOvExDpYJw4LpNlZSpdBRmSc';
+        // ============================================================
+
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Lista de usuarios autorizados
+        const USUARIOS = [
+            { usuario: "rayc",       password: "match17"  },
+            { usuario: "David Soria", password: "david05" },
+            { usuario: "Maikel", password: "maikelrv2026" },
+            { usuario: "Victi", password: "victi00" },
+            { usuario: "Pikuli", password: "pikuli01" },
+            { usuario: "Eduardo", password: "mateo24" },
+            { usuario: "Laidel", password: "dani25" },
+            { usuario: "Yamil", password: "maikol03" },
+            { usuario: "Gustavo", password: "helen07" },
+            { usuario: "Denzel", password: "amador20" },  
+            { usuario: "Harold", password: "brasil05" },
+        ];
+
+        window.iniciarSesion = async function() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('btn-login');
+
+            errorMsg.style.display = 'none';
+            const encontrado = USUARIOS.find(u => u.usuario === user && u.password === pass);
+
+            if (!encontrado) {
+                errorMsg.textContent = 'Usuario o contraseña incorrectos.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            btn.textContent = 'Entrando...';
+            btn.disabled = true;
+
+            try {
+                // Registrar en Supabase si es la primera vez (ignora si ya existe)
+                const { error } = await db
+                    .from('tabla')
+                    .upsert({ usuario: user, puntos: 0 }, { onConflict: 'usuario', ignoreDuplicates: true });
+
+                if (error) throw error;
+
+                localStorage.setItem('fw_usuario_activo', user);
+                window.location.href = 'partidos.html';
+
+            } catch (err) {
+                console.error(err);
+                errorMsg.textContent = 'Error de conexión. Revisa la conexion.';
+                errorMsg.style.display = 'block';
+                btn.textContent = 'Iniciar Sesión';
+                btn.disabled = false;
+            }
+        };
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') window.iniciarSesion(); });
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js");
+      }
+    </script>
+</body>
+</html>

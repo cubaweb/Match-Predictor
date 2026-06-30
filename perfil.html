@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Mi Perfil</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel="icon" type="image/png" href="Imagenes/Logo Principal.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MXP</div>
+        <ul class="nav-links">
+            <li><a href="partidos.html">Partidos</a></li>
+            <li><a href="tabla.html">Tabla</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+            <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container" style="grid-template-columns: 1fr; max-width: 600px;">
+        <section class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar"></div>
+                <div>
+                    <h2 id="nombre-perfil">Cargando...</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Predictor Manager</p>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span>Nombre de Usuario</span>
+                    <strong id="usuario-display">—</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Puntos Totales</span>
+                    <strong id="puntos-display" class="points">—</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Posición en Tabla</span>
+                    <strong id="posicion-display" class="rank">—</strong>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ============================================================
+        // CONFIGURACIÓN SUPABASE — reemplaza con tus datos reales
+        // Los encuentras en: supabase.com → tu proyecto → Settings → API
+        // ============================================================
+        const SUPABASE_URL = 'https://xjvfasmlkoaldmcfpmzz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqdmZhc21sa29hbGRtY2ZwbXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NjIwMDEsImV4cCI6MjA5NTUzODAwMX0.oHaopTE0FxDXNvWKnt0aOvExDpYJw4LpNlZSpdBRmSc';
+        // ============================================================
+
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const usuarioActivo = localStorage.getItem('fw_usuario_activo');
+        if (!usuarioActivo) window.location.href = 'index.html';
+
+        document.getElementById('nombre-perfil').textContent = usuarioActivo;
+        document.getElementById('usuario-display').textContent = usuarioActivo;
+
+        async function cargarPerfil() {
+            try {
+                const { data, error } = await db
+                    .from('tabla')
+                    .select('usuario, puntos')
+                    .order('puntos', { ascending: false });
+
+                if (error) throw error;
+
+                const tabla = data || [];
+                const miData = tabla.find(u => u.usuario === usuarioActivo);
+                const miPosicion = tabla.findIndex(u => u.usuario === usuarioActivo) + 1;
+
+                document.getElementById('puntos-display').textContent =
+                    miData ? miData.puntos + ' pts' : '0 pts';
+                document.getElementById('posicion-display').textContent =
+                    miPosicion > 0 ? '#' + miPosicion : '—';
+
+            } catch (err) {
+                console.error('Error cargando perfil:', err);
+                document.getElementById('puntos-display').textContent = 'Error';
+                document.getElementById('posicion-display').textContent = 'Error';
+            }
+        }
+
+        cargarPerfil();
+        setInterval(cargarPerfil, 15000);
+
+        function cerrarSesion() {
+            localStorage.removeItem('fw_usuario_activo');
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js");
+      }
+    </script>
+</body>
+</html>
