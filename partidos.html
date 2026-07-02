@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Partidos</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel="icon" type="image/png" href="Imagenes/Logo Principal.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <!-- EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MXP</div>
+        <ul class="nav-links">
+            <li><a href="partidos.html">Partidos</a></li>
+            <li><a href="tabla.html">Tabla</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+            <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section id="matches">
+            <div class="section-heading">
+                <h2 style="margin:0;">Dieciseisavos</h2>
+                <button id="admin-btn-partidos" class="admin-btn-toggle" onclick="pedirAdminPartidos()">Partidos</button>
+            </div>
+            <div id="admin-bar-partidos" class="admin-controls-bar admin-controls-bar--inline">
+                <span class="admin-controls-bar-title">⚙ Admin activo</span>
+                <span class="admin-controls-bar-desc">Bloquea predicciones o ingresa el resultado de un partido</span>
+                <button id="lock-btn-partidos" class="btn-admin-mini btn-lock" onclick="salirAdminPartidos()">🔒 Salir</button>
+            </div>
+
+            <!-- Las tarjetas de partido se generan dinámicamente desde
+                 MATCHES_INICIALES en JS/partidos.js (ver renderPartidos) -->
+            <div class="matches-grid" id="matches-grid"></div>
+        </section>
+    </div>
+
+    <!-- Modal de predicción -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-titulo" class="modal-title"></h3>
+            <p class="modal-subtitle">Ingresa tu predicción de marcador</p>
+            <div id="prediccion-anterior" class="modal-previous-pick">
+                <span class="modal-previous-pick-label">Tu predicción anterior: </span>
+                <span id="texto-anterior" class="modal-previous-pick-value"></span>
+            </div>
+            <div class="score-input-row">
+                <div class="score-input-group">
+                    <div id="nombre-local" class="team-name-label"></div>
+                    <input type="number" id="goles-local" min="0" max="20" value="0">
+                </div>
+                <div class="score-divider">-</div>
+                <div class="score-input-group">
+                    <div id="nombre-visitante" class="team-name-label"></div>
+                    <input type="number" id="goles-visitante" min="0" max="20" value="0">
+                </div>
+            </div>
+            <div class="modal-actions-row">
+                <button onclick="cerrarModal()" class="btn-secondary">Cancelar</button>
+                <button onclick="confirmarPrediccion()" class="predict-btn" id="btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal contraseña admin -->
+    <div id="admin-modal-partidos" class="modal-overlay">
+        <div class="modal-box modal-box--sm">
+            <h3 class="modal-title--accent">🔑 Acceso Admin</h3>
+            <p class="modal-subtitle">Ingresa la contraseña de administrador</p>
+            <input type="password" id="admin-pass-partidos" class="admin-modal-input" placeholder="Contraseña admin"
+                onkeydown="if(event.key==='Enter')verificarAdminPartidos()">
+            <p id="admin-error-partidos" class="admin-error-text">Contraseña incorrecta.</p>
+            <div class="modal-actions-row">
+                <button onclick="cerrarModalAdminPartidos()" class="btn-secondary">Cancelar</button>
+                <button onclick="verificarAdminPartidos()" class="btn-gold">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal resultado de partido -->
+    <div id="modal-resultado" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="resultado-titulo" class="modal-title"></h3>
+            <p class="modal-subtitle">Ingresa el resultado final</p>
+            <div class="score-input-row">
+                <div class="score-input-group">
+                    <div id="resultado-nombre-local" class="team-name-label"></div>
+                    <input type="number" id="resultado-goles-local" min="0" max="20" value="0">
+                </div>
+                <div class="score-divider">-</div>
+                <div class="score-input-group">
+                    <div id="resultado-nombre-visitante" class="team-name-label"></div>
+                    <input type="number" id="resultado-goles-visitante" min="0" max="20" value="0">
+                </div>
+            </div>
+            <div class="modal-actions-row">
+                <button onclick="cerrarModalResultado()" class="btn-secondary">Cancelar</button>
+                <button onclick="confirmarResultado()" class="btn-gold" id="btn-confirmar-resultado">Guardar resultado</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">✔ Predicción enviada</div>
+
+    <!-- Overlay de envío -->
+    <div id="sending-overlay" class="sending-overlay">
+        <div class="spinner"></div>
+        <span style="color:#f8fafc; font-weight:bold;">Enviando predicción...</span>
+    </div>
+
+    <script src="./JS/supabaseConfig.js"></script>
+    <script src="./JS/partidos.js"></script>
+    <script src="./JS/registerServiceWorker.js"></script>
+</body>
+</html>

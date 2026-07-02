@@ -1,0 +1,918 @@
+/* ============================================================
+   MATCH PREDICTOR — HOJA DE ESTILOS PRINCIPAL
+   Organización:
+     1. Variables y reseteo global
+     2. Tipografía y utilidades base
+     3. Navbar
+     4. Layout principal (contenedores y grid)
+     5. Login
+     6. Tarjetas de partidos
+     7. Tabla de posiciones
+     8. Tarjeta / detalle de perfil
+     9. Modales (predicción, resultado, admin)
+    10. Barras y controles de administrador
+    11. Toast y overlay de envío
+    12. Responsive (mobile-first, breakpoints al final)
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. VARIABLES Y RESETEO GLOBAL
+   ------------------------------------------------------------ */
+:root {
+    --primary-bg: #040508;
+    --secondary-bg: #1e293b;
+    --card-border: #334155;
+    --accent-color: #356ee9;
+    --text-color: #f8fafc;
+    --text-muted: #94a3b8;
+    --gold: #f59e0b;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --danger-bg: #7f1d1d;
+    --danger-text: #fca5a5;
+    --input-bg: #0f172a;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 16px;
+
+    /* Espaciado fluido: se adapta entre móvil y escritorio sin media queries extra */
+    --space-sm: clamp(0.5rem, 1.5vw, 0.75rem);
+    --space-md: clamp(0.75rem, 2.5vw, 1.5rem);
+    --space-lg: clamp(1.25rem, 4vw, 2rem);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+html {
+    /* Evita que el texto se vea gigante en móviles cuando el usuario rota la pantalla */
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    min-height: 100vh;
+}
+
+h2 {
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--accent-color);
+    padding-left: 10px;
+    font-size: clamp(1.15rem, 3vw, 1.5rem);
+}
+
+h3 {
+    margin: 10px 0;
+}
+
+button {
+    font-family: inherit;
+}
+
+/* ------------------------------------------------------------
+   3. NAVBAR
+   ------------------------------------------------------------ */
+nav {
+    background-color: var(--secondary-bg);
+    padding: 0.9rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    letter-spacing: 2px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    transition: color 0.3s;
+    font-size: 0.95rem;
+}
+
+.nav-links a:hover {
+    color: var(--accent-color);
+}
+
+/* ------------------------------------------------------------
+   4. LAYOUT PRINCIPAL
+   ------------------------------------------------------------ */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 1fr; /* Móvil: una sola columna, ver breakpoints al final */
+    gap: 2rem;
+}
+
+/* Variante de una sola columna usada en tabla.html y perfil.html */
+.container--single {
+    max-width: 700px;
+}
+
+.container--narrow {
+    max-width: 600px;
+}
+
+/* ------------------------------------------------------------
+   5. LOGIN
+   ------------------------------------------------------------ */
+.login-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem;
+    background: radial-gradient(circle at top, #0b1220 0%, var(--primary-bg) 70%);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 380px;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-heading {
+    margin-bottom: 1.5rem;
+    border: none;
+    padding: 0;
+    text-align: center;
+}
+
+.login-button {
+    width: 100%;
+    padding: 1rem;
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* ------------------------------------------------------------
+   6. TARJETAS DE PARTIDOS
+   ------------------------------------------------------------ */
+.matches-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.match-card {
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
+    padding: var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.2s;
+    border: 1px solid var(--card-border);
+}
+
+.match-card:hover {
+    transform: translateY(-5px);
+}
+
+.match-card.mini {
+    padding: 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    text-align: center;
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+}
+
+.team-logo {
+    background-color: #000;
+    background-size: cover;
+    background-position: center;
+    width: clamp(44px, 12vw, 60px);
+    height: clamp(44px, 12vw, 60px);
+    border-radius: 30%;
+    margin-bottom: 0.5rem;
+}
+
+.vs {
+    font-weight: bold;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+.match-info {
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.match-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.predict-btn {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    min-height: 40px;
+}
+
+.predict-btn:hover {
+    background-color: var(--text-muted);
+}
+
+.predict-btn:disabled,
+.btn-cambiar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cerrado-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.resultado-final {
+    margin-top: 0.35rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+}
+
+/* Badges de puntos ganados/perdidos por partido */
+.badge-puntos {
+    display: inline-block;
+    margin-top: 0.4rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.badge-mas3 { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid #22c55e55; }
+.badge-mas1 { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border: 1px solid #94a3b855; }
+.badge-menos1 { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid #ef444455; }
+
+.btns-prediccion {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.match-info .btns-prediccion {
+    margin-top: 0.4rem;
+}
+
+.btn-predicho {
+    background: #1a3e8b;
+    color: #bbf7d0;
+    border: 1.5px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: bold;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.btn-cambiar {
+    background: var(--secondary-bg);
+    color: var(--text-muted);
+    border: 1.5px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-cambiar:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+/* ------------------------------------------------------------
+   7. TABLA DE POSICIONES
+   ------------------------------------------------------------ */
+.leaderboard {
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
+    padding: var(--space-md);
+    margin-top: 50px;
+}
+
+.leaderboard--top {
+    margin-top: 0;
+}
+
+.leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.leaderboard-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.leaderboard-title {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+/* Envoltorio con scroll horizontal para que la tabla no rompa el layout en pantallas pequeñas */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    min-width: 360px;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 0.5rem;
+    white-space: nowrap;
+}
+
+td {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+td.table-empty-state,
+td.table-loading-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem;
+}
+
+.rank { font-weight: bold; color: var(--gold); }
+.points { font-weight: bold; color: var(--accent-color); }
+
+.player-name--active {
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.player-name-tag {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.row--active {
+    background: rgba(34, 197, 94, 0.07);
+}
+
+/* ------------------------------------------------------------
+   8. PERFIL
+   ------------------------------------------------------------ */
+.profile-card {
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    border: 1px solid var(--card-border);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.profile-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.profile-details .detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--card-border);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.status-win {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------
+   5.1 FORMULARIOS
+   ------------------------------------------------------------ */
+.form-group {
+    margin: 0 0 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-group input:focus {
+    border-color: var(--success);
+    outline: none;
+}
+
+/* ------------------------------------------------------------
+   9. MODALES (predicción, resultado, admin)
+   ------------------------------------------------------------ */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-box {
+    background: var(--secondary-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-box--sm {
+    max-width: 360px;
+    text-align: center;
+}
+
+.modal-title {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-color);
+}
+
+.modal-title--accent {
+    color: var(--gold);
+    margin-bottom: 1rem;
+}
+
+.modal-subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.modal-previous-pick {
+    display: none;
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 0.6rem;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid #22c55e33;
+    border-radius: 8px;
+}
+
+.modal-previous-pick.show {
+    display: block;
+}
+
+.modal-previous-pick-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.modal-previous-pick-value {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.score-input-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.score-input-group {
+    text-align: center;
+}
+
+.score-input-group .team-name-label {
+    color: var(--text-color);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.score-input-group input {
+    width: 70px;
+    padding: 0.8rem;
+    font-size: 1.5rem;
+    text-align: center;
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+}
+
+.score-divider {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.modal-actions-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.modal-actions-row button {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-secondary {
+    background: var(--card-border);
+    color: var(--text-color);
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: #0f172a;
+}
+
+.admin-error-text {
+    color: var(--danger);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    display: none;
+}
+
+.admin-error-text.show {
+    display: block;
+}
+
+/* Modal de acceso admin (input + acciones), reutilizado en tabla.html y partidos.html */
+.admin-modal-input {
+    width: 100%;
+    padding: 0.7rem;
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.admin-modal-input:focus {
+    border-color: var(--success);
+    outline: none;
+}
+
+/* ------------------------------------------------------------
+   10. BARRAS Y CONTROLES DE ADMINISTRADOR
+   ------------------------------------------------------------ */
+.admin-btn-toggle {
+    background: none;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 5px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.admin-controls-bar {
+    display: none;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    padding: 0.8rem 1rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-controls-bar.show {
+    display: flex;
+}
+
+.admin-controls-bar--inline {
+    margin: 0.8rem 0 1.2rem;
+}
+
+.admin-controls-bar-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.admin-controls-bar-desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.admin-card-controls {
+    display: none;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.admin-card-controls.show {
+    display: flex;
+}
+
+.admin-badge {
+    font-size: 0.65rem;
+    background: var(--gold);
+    color: #0f172a;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: bold;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.btn-admin-mini {
+    border: none;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 0.72rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-lock { background: var(--card-border); color: var(--text-color); }
+.btn-lock.locked { background: var(--danger-bg); color: var(--danger-text); }
+.btn-resultado { background: var(--gold); color: #0f172a; }
+
+.btn-edit,
+.btn-delete {
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.btn-edit { background: var(--card-border); color: var(--text-color); }
+.btn-edit:hover { background: var(--success); color: #0f172a; }
+.btn-delete { background: var(--danger-bg); color: var(--danger-text); margin-left: 4px; }
+.btn-delete:hover { background: var(--danger); color: #fff; }
+
+.sync-indicator {
+    font-size: 0.75rem;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sync-indicator--offline {
+    color: var(--danger);
+}
+
+.sync-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.sync-dot--offline {
+    background: var(--danger);
+    animation: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ------------------------------------------------------------
+   11. TOAST Y OVERLAY DE ENVÍO
+   ------------------------------------------------------------ */
+.toast {
+    display: none;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    left: 1.5rem;
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    font-weight: bold;
+    z-index: 2000;
+    text-align: center;
+}
+
+.toast.show {
+    display: block;
+}
+
+.sending-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 1rem;
+}
+
+.sending-overlay.show {
+    display: flex;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--card-border);
+    border-top-color: var(--success);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   12. RESPONSIVE — mobile-first, se agranda hacia escritorio
+   ============================================================ */
+
+/* Tablets pequeñas (≥ 480px): las tarjetas de partido pasan a fila */
+@media (min-width: 480px) {
+    .toast {
+        left: auto;
+        max-width: 320px;
+    }
+}
+
+/* Tablets (≥ 640px) */
+@media (min-width: 640px) {
+    nav {
+        padding: 1rem 5%;
+    }
+
+    .nav-links {
+        justify-content: flex-end;
+    }
+}
+
+/* Escritorio (≥ 900px): la grilla principal vuelve a 2 columnas */
+@media (min-width: 900px) {
+    .container {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .container--single,
+    .container--narrow {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Pantallas muy angostas (≤ 400px): las tarjetas de partido se apilan
+   verticalmente para que los nombres de equipo no se corten */
+@media (max-width: 400px) {
+    .match-card {
+        flex-direction: column;
+    }
+
+    .team {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 0.6rem;
+    }
+
+    .team-logo {
+        margin-bottom: 0;
+    }
+
+    .vs {
+        display: none;
+    }
+}

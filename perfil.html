@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Mi Perfil</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel="icon" type="image/png" href="Imagenes/Logo Principal.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MXP</div>
+        <ul class="nav-links">
+            <li><a href="partidos.html">Partidos</a></li>
+            <li><a href="tabla.html">Tabla</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+            <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container container--narrow">
+        <section class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar"></div>
+                <div>
+                    <h2 id="nombre-perfil">Cargando...</h2>
+                    <p class="profile-subtitle">Predictor Manager</p>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span>Nombre de Usuario</span>
+                    <strong id="usuario-display">—</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Puntos Totales</span>
+                    <strong id="puntos-display" class="points">—</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Posición en Tabla</span>
+                    <strong id="posicion-display" class="rank">—</strong>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JS/supabaseConfig.js"></script>
+    <script src="./JS/perfil.js"></script>
+    <script src="./JS/registerServiceWorker.js"></script>
+</body>
+</html>

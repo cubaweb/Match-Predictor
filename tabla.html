@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Predictor - Tabla</title>
+    <link rel="stylesheet" href="./CSS/Predicciones.css">
+    <link rel="icon" type="image/png" href="Imagenes/Logo Principal.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MXP</div>
+        <ul class="nav-links">
+            <li><a href="partidos.html">Partidos</a></li>
+            <li><a href="tabla.html">Tabla</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+            <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="container container--single">
+        <aside>
+            <div class="leaderboard leaderboard--top">
+
+                <div class="leaderboard-header">
+                    <div class="leaderboard-header-left">
+                        <h2 class="leaderboard-title">Tabla de Posiciones</h2>
+                        <span class="sync-indicator" id="sync-status">
+                            <span class="sync-dot"></span> En vivo
+                        </span>
+                    </div>
+                    <button id="admin-btn" onclick="pedirAdmin()" class="admin-btn-toggle">
+                        Predicciones
+                    </button>
+                </div>
+
+                <!-- Barra cuando admin activo -->
+                <div id="admin-bar" class="admin-controls-bar">
+                    <span class="admin-controls-bar-title">⚙ Admin activo</span>
+                    <span class="admin-controls-bar-desc">Edita o elimina jugadores directamente en la tabla</span>
+                    <button id="lock-btn" onclick="bloquearAdmin()">🔒 Salir</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Jugador</th>
+                                <th>Puntos</th>
+                                <th id="col-acciones" style="display:none;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body">
+                            <tr><td colspan="3" class="table-loading-state">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal contraseña admin -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-box modal-box--sm">
+            <h3 class="modal-title--accent">🔑 Acceso Admin</h3>
+            <p class="modal-subtitle">Ingresa la contraseña de administrador</p>
+            <input type="password" id="admin-pass" class="admin-modal-input" placeholder="Contraseña admin" onkeydown="if(event.key==='Enter')verificarAdmin()">
+            <p id="admin-error" class="admin-error-text">Contraseña incorrecta.</p>
+            <div class="modal-actions-row">
+                <button id="modal-cancel" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button id="modal-ok" class="btn-gold" onclick="verificarAdmin()">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./JS/supabaseConfig.js"></script>
+    <script src="./JS/tabla.js"></script>
+    <script src="./JS/registerServiceWorker.js"></script>
+</body>
+</html>
