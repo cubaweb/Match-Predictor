@@ -236,8 +236,8 @@ nav {
     background-color: #000;
     background-size: cover;
     background-position: center;
-    width: clamp(44px, 12vw, 60px);
-    height: clamp(44px, 12vw, 60px);
+    width: 60px;
+    height: 60px;
     border-radius: 30%;
     margin-bottom: 0.5rem;
 }
@@ -859,8 +859,37 @@ td.table-loading-state {
     to { transform: rotate(360deg); }
 }
 
+/* ------------------------------------------------------------
+   12. CONFETI (celebración al acertar un marcador exacto, +3)
+   ------------------------------------------------------------ */
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4000;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: fixed;
+    top: -12px;
+    width: 8px;
+    height: 14px;
+    pointer-events: none;
+    animation-name: confetti-fall;
+    animation-timing-function: ease-in;
+    animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+    to {
+        transform: translate(var(--drift), 105vh) rotate(var(--rot));
+        opacity: 0.85;
+    }
+}
+
 /* ============================================================
-   12. RESPONSIVE — mobile-first, se agranda hacia escritorio
+   13. RESPONSIVE — mobile-first, se agranda hacia escritorio
    ============================================================ */
 
 /* Tablets pequeñas (≥ 480px): las tarjetas de partido pasan a fila */
@@ -894,25 +923,4 @@ td.table-loading-state {
     }
 }
 
-/* Pantallas muy angostas (≤ 400px): las tarjetas de partido se apilan
-   verticalmente para que los nombres de equipo no se corten */
-@media (max-width: 400px) {
-    .match-card {
-        flex-direction: column;
-    }
 
-    .team {
-        width: 100%;
-        flex-direction: row;
-        justify-content: center;
-        gap: 0.6rem;
-    }
-
-    .team-logo {
-        margin-bottom: 0;
-    }
-
-    .vs {
-        display: none;
-    }
-}
