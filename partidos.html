@@ -506,7 +506,7 @@
 
         function abrirModal(local, visitante, cardId) {
             if (estadoPartidos[cardId]?.bloqueado) {
-                mostrarToast('🔒 Las predicciones para este partido están cerradas.', true);
+                mostrarToast('Las predicciones para este partido están cerradas.', true);
                 return;
             }
             cardActual = cardId;
@@ -612,7 +612,7 @@
 
             const contenido = `
                 <span class="btn-predicho" title="${textoPredicho}">${marcador}</span>
-                <button class="btn-cambiar" ${bloqueado ? 'disabled' : ''} onclick="abrirModal('${pred?.local || localActual}', '${pred?.visitante || visitanteActual}', '${cardId}')">${bloqueado ? '🔒 Cerrado' : 'Cambiar'}</button>
+                <button class="btn-cambiar" ${bloqueado ? 'disabled' : ''} onclick="abrirModal('${pred?.local || localActual}', '${pred?.visitante || visitanteActual}', '${cardId}')">${bloqueado ? ' Cerrado' : 'Cambiar'}</button>
             `;
 
             // Si ya existe el área de predicción (de una carga anterior), solo actualizamos su contenido
@@ -664,14 +664,14 @@
             const btnPredecir = document.getElementById('btn-' + cardId);
             if (btnPredecir) {
                 btnPredecir.disabled = bloqueado;
-                btnPredecir.textContent = bloqueado ? '🔒 Cerrado' : 'Predecir';
+                btnPredecir.textContent = bloqueado ? 'Cerrado' : 'Predecir';
             }
             const areaPred = document.getElementById('btn-area-' + cardId);
             if (areaPred) {
                 const btnCambiar = areaPred.querySelector('.btn-cambiar');
                 if (btnCambiar) {
                     btnCambiar.disabled = bloqueado;
-                    btnCambiar.textContent = bloqueado ? '🔒 Cerrado' : 'Cambiar';
+                    btnCambiar.textContent = bloqueado ? 'Cerrado' : 'Cambiar';
                 }
             }
 
